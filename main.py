@@ -1,5 +1,5 @@
 """
-main.py — Scheduler and entry point for Archive Scout.
+main.py — Scheduler and entry point for FlipScout.
 
 Loads config.yaml, initialises the database, seeds market values,
 then runs the scrape→score→alert pipeline on a configurable interval.
@@ -196,7 +196,7 @@ async def async_main() -> None:
     setup_logging()
     cfg = load_config()
 
-    logger.info("Archive Scout starting up")
+    logger.info("FlipScout starting up")
     logger.info("Keywords: %s", cfg["keywords"])
     logger.info("Max price: $%s USD | Deal threshold: %s%%",
                 cfg["max_price_usd"], cfg["deal_threshold_pct"])
@@ -253,7 +253,7 @@ async def async_main() -> None:
             except asyncio.CancelledError:
                 pass
 
-        logger.info("Archive Scout stopped")
+        logger.info("FlipScout stopped")
 
 
 def main() -> None:

@@ -1,5 +1,5 @@
 """
-bot_discord.py — discord.py v2 bot for Archive Scout.
+bot_discord.py — discord.py v2 bot for FlipScout.
 Uses app_commands (slash commands), discord.ui.View with buttons,
 and discord.ui.Modal for text input.
 
@@ -68,7 +68,7 @@ def build_client(cfg: dict) -> ArchiveScoutBot:
 
     def _main_embed() -> discord.Embed:
         embed = discord.Embed(
-            title="📦 Archive Scout Dashboard",
+            title="📦 FlipScout Dashboard",
             color=0x5865F2,
         )
         return embed
@@ -347,7 +347,7 @@ def build_client(cfg: dict) -> ArchiveScoutBot:
 
     # ── Slash commands ────────────────────────────────────────────────────────
 
-    @bot.tree.command(name="manage", description="Open the Archive Scout dashboard")
+    @bot.tree.command(name="manage", description="Open the FlipScout dashboard")
     async def slash_manage(interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
             embed=_main_embed(),

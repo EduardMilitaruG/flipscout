@@ -1,8 +1,8 @@
-# Archive Scout
+# FlipScout
 
 A Python automation tool that monitors Japanese secondhand marketplaces for underpriced archive fashion and sends real-time alerts to **Telegram** and **Discord**.
 
-Japanese platforms like Yahoo Auctions Japan list pieces from Undercover, Number (N)ine, Kapital, Yohji Yamamoto, Comme des Garçons and Issey Miyake at a fraction of Western resale prices. The problem is you'd have to refresh listings manually, around the clock, across multiple platforms, in Japanese. Archive Scout does that for you.
+Japanese platforms like Yahoo Auctions Japan list pieces from Undercover, Number (N)ine, Kapital, Yohji Yamamoto, Comme des Garçons and Issey Miyake at a fraction of Western resale prices. The problem is you'd have to refresh listings manually, around the clock, across multiple platforms, in Japanese. FlipScout does that for you.
 
 ---
 
@@ -53,8 +53,8 @@ Both bots run as concurrent `asyncio` tasks alongside the scraper scheduler. The
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/archive-scout
-cd archive-scout
+git clone https://github.com/YOUR_USERNAME/flipscout
+cd flipscout
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -114,7 +114,7 @@ The tool immediately runs the first scrape, starts both bots, then repeats on th
 Opens an inline keyboard dashboard inside a single message, edited in-place as you navigate:
 
 ```
-📦 Archive Scout Dashboard
+📦 FlipScout Dashboard
 [📋 Keywords & Prices]  [⚙️ Settings]
 [📊 Stats]              [❌ Close]
 ```
@@ -159,7 +159,7 @@ Market values are seeded from this file on first run (existing DB entries are no
 ## Project Structure
 
 ```
-archive-scout/
+flipscout/
 ├── main.py
 ├── scraper.py
 ├── pricer.py

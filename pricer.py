@@ -1,5 +1,5 @@
 """
-pricer.py — Price intelligence layer for Archive Scout.
+pricer.py — Price intelligence layer for FlipScout.
 
 Determines whether a listing is "underpriced" relative to the
 estimated market value stored in the database, and calculates

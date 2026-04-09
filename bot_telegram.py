@@ -1,5 +1,5 @@
 """
-bot_telegram.py — Full PTB v21 async Telegram bot for Archive Scout.
+bot_telegram.py — Full PTB v21 async Telegram bot for FlipScout.
 Replaces bot.py. Uses inline keyboard menus with state stored in
 context.user_data["action"] instead of ConversationHandler.
 """
@@ -41,7 +41,7 @@ def _main_menu_markup() -> InlineKeyboardMarkup:
 
 
 def _main_menu_text() -> str:
-    return "📦 *Archive Scout Dashboard*"
+    return "📦 *FlipScout Dashboard*"
 
 
 def _keywords_menu_text() -> str:
@@ -100,7 +100,7 @@ def _keyword_buttons(action_prefix: str) -> InlineKeyboardMarkup:
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "👋 *Archive Scout* is running\\.\n\n"
+        "👋 *FlipScout* is running\\.\n\n"
         "Use /manage to open the dashboard\\.",
         parse_mode=ParseMode.MARKDOWN_V2,
     )
