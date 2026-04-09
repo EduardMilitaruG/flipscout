@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from db import get_market_value, seed_market_values
-from scraper import Listing
+from scrapers.base import Listing
 
 logger = logging.getLogger(__name__)
 

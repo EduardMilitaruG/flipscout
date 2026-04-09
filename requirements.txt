@@ -1,25 +1,23 @@
-# Archive Scout dependencies
+# FlipScout dependencies
 # Install with: pip install -r requirements.txt
 
-# HTTP & scraping
-curl_cffi>=0.7.0
+# ── HTTP & scraping ────────────────────────────────────────────────────────────
+curl_cffi>=0.7.0          # Chrome TLS fingerprint impersonation (Cloudflare bypass)
 audioop-lts>=0.2.1
 beautifulsoup4==4.12.3
 lxml==5.2.1
+requests>=2.31.0          # eBay Finding API, Cardmarket, currency rates
 
-# Telegram bot (async, v20+)
+# ── Bots ───────────────────────────────────────────────────────────────────────
 python-telegram-bot==21.9
-
-# Discord bot (v2)
 discord.py==2.4.0
 
-# Scheduling
-schedule==1.2.2
+# ── API server (dashboard backend) ────────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0.0
 
-# Config & env
+# ── Scheduling & config ────────────────────────────────────────────────────────
+schedule==1.2.2
 PyYAML==6.0.1
 python-dotenv==1.0.1
-
-# Optional: Selenium (only needed if ZenMarket serves JS-rendered pages)
-# selenium==4.20.0
-# webdriver-manager==4.0.1
