@@ -1,0 +1,25 @@
+# Archive Scout dependencies
+# Install with: pip install -r requirements.txt
+
+# HTTP & scraping
+curl_cffi>=0.7.0
+audioop-lts>=0.2.1
+beautifulsoup4==4.12.3
+lxml==5.2.1
+
+# Telegram bot (async, v20+)
+python-telegram-bot==21.9
+
+# Discord bot (v2)
+discord.py==2.4.0
+
+# Scheduling
+schedule==1.2.2
+
+# Config & env
+PyYAML==6.0.1
+python-dotenv==1.0.1
+
+# Optional: Selenium (only needed if ZenMarket serves JS-rendered pages)
+# selenium==4.20.0
+# webdriver-manager==4.0.1

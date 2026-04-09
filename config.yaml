@@ -1,0 +1,59 @@
+# Archive Scout — configuration
+# Secrets (telegram_bot_token, telegram_chat_id) should be set in .env
+# All other settings can be overridden here.
+
+keywords:
+  - "undercover jacket"
+  - "undercover ss"                 # Undercover Spring/Summer collections
+  - "number nine denim"
+  - "number nine jacket"
+  - "kapital"
+  - "issey miyake pleats please"
+  - "yohji yamamoto"
+  - "comme des garcons homme plus"
+  - "jungle jap"                    # Early Kenzo Takada label
+  - "beauty:beast"                  # Takahiro Miyashita label pre-The Soloist
+
+# Maximum price to even consider a listing (USD)
+max_price_usd: 350
+
+# Alert if listing is this many percent below market value
+deal_threshold_pct: 30
+
+# How often to run the scraper (minutes)
+check_interval_minutes: 15
+
+# Pages to scrape per keyword (each page ~48 results)
+max_pages: 2
+
+# Terms that immediately disqualify a listing (case-insensitive)
+exclude_terms:
+  - replica
+  - fake
+  - inspired by
+  - bootleg
+  - copy
+  - repro
+  - "not authentic"
+
+# Estimated fair market values in USD (used for deal scoring)
+# These are conservative Western-resale estimates; adjust to your own research.
+market_values:
+  "undercover jacket":            480
+  "undercover ss":                420
+  "number nine denim":            390
+  "number nine jacket":           450
+  "kapital":                      260
+  "issey miyake pleats please":   180
+  "yohji yamamoto":               550
+  "comme des garcons homme plus": 620
+  "jungle jap":                   300
+  "beauty:beast":                 340
+
+# Telegram credentials — prefer setting these in .env instead
+# telegram_bot_token: ""
+# telegram_chat_id: ""
+
+# Discord credentials — prefer setting these in .env instead
+# discord_bot_token: ""
+# discord_channel_id: ""

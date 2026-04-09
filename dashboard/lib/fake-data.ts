@@ -1,0 +1,298 @@
+import type {
+  Keyword,
+  DealAlert,
+  BotConfig,
+  ChartDataPoint,
+  BrandShare,
+  DashboardStats,
+  SearchSettings,
+} from "@/types";
+import { discountToDealScore, subMinutes } from "./utils";
+
+export const INITIAL_KEYWORDS: Keyword[] = [
+  {
+    id: "kw1",
+    term: "undercover jacket",
+    category: "undercover",
+    marketValueUsd: 480,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 14,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw2",
+    term: "undercover ss",
+    category: "undercover",
+    marketValueUsd: 420,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 9,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw3",
+    term: "number nine denim",
+    category: "number-nine",
+    marketValueUsd: 390,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 7,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw4",
+    term: "number nine jacket",
+    category: "number-nine",
+    marketValueUsd: 450,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(25),
+    dealsFound: 11,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw5",
+    term: "kapital",
+    category: "kapital",
+    marketValueUsd: 260,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 22,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw6",
+    term: "issey miyake pleats please",
+    category: "issey",
+    marketValueUsd: 180,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 31,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw7",
+    term: "yohji yamamoto",
+    category: "yohji",
+    marketValueUsd: 550,
+    dealThresholdPct: 30,
+    enabled: false,
+    lastScraped: subMinutes(180),
+    dealsFound: 6,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw8",
+    term: "comme des garcons homme plus",
+    category: "cdg",
+    marketValueUsd: 620,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 8,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw9",
+    term: "jungle jap",
+    category: "other",
+    marketValueUsd: 300,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 4,
+    maxPriceUsd: 350,
+  },
+  {
+    id: "kw10",
+    term: "beauty:beast",
+    category: "other",
+    marketValueUsd: 340,
+    dealThresholdPct: 30,
+    enabled: true,
+    lastScraped: subMinutes(12),
+    dealsFound: 3,
+    maxPriceUsd: 350,
+  },
+];
+
+export const INITIAL_ALERTS: DealAlert[] = [
+  {
+    id: "al1",
+    title: "UNDERCOVER AW02 'But Beautiful' Leather Jacket",
+    keyword: "undercover jacket",
+    priceJpy: 28000,
+    priceUsd: 187,
+    marketValueUsd: 480,
+    discountPct: 61,
+    dealScore: "fire",
+    url: "https://zenmarket.jp/en/auction.aspx?itemCode=x123",
+    thumbnail: null,
+    source: "yahoo",
+    platforms: ["telegram", "discord"],
+    sentAt: subMinutes(8),
+    isNew: false,
+  },
+  {
+    id: "al2",
+    title: "Number (N)ine SS04 'Dream' Washed Denim",
+    keyword: "number nine denim",
+    priceJpy: 19800,
+    priceUsd: 132,
+    marketValueUsd: 390,
+    discountPct: 66,
+    dealScore: "fire",
+    url: "https://zenmarket.jp/en/auction.aspx?itemCode=x124",
+    thumbnail: null,
+    source: "mercari",
+    platforms: ["telegram", "discord"],
+    sentAt: subMinutes(24),
+    isNew: false,
+  },
+  {
+    id: "al3",
+    title: "Kapital Kountry Ring Coat Indigo Dye",
+    keyword: "kapital",
+    priceJpy: 22000,
+    priceUsd: 147,
+    marketValueUsd: 260,
+    discountPct: 43,
+    dealScore: "hot",
+    url: "https://zenmarket.jp/en/auction.aspx?itemCode=x125",
+    thumbnail: null,
+    source: "yahoo",
+    platforms: ["telegram"],
+    sentAt: subMinutes(47),
+    isNew: false,
+  },
+  {
+    id: "al4",
+    title: "Issey Miyake Pleats Please Pleated Trousers Size 3",
+    keyword: "issey miyake pleats please",
+    priceJpy: 9800,
+    priceUsd: 65,
+    marketValueUsd: 180,
+    discountPct: 64,
+    dealScore: "fire",
+    url: "https://zenmarket.jp/en/auction.aspx?itemCode=x126",
+    thumbnail: null,
+    source: "mercari",
+    platforms: ["telegram", "discord"],
+    sentAt: subMinutes(91),
+    isNew: false,
+  },
+  {
+    id: "al5",
+    title: "Comme des Garçons Homme Plus Oversized Blazer AW19",
+    keyword: "comme des garcons homme plus",
+    priceJpy: 45000,
+    priceUsd: 300,
+    marketValueUsd: 620,
+    discountPct: 52,
+    dealScore: "hot",
+    url: "https://zenmarket.jp/en/auction.aspx?itemCode=x127",
+    thumbnail: null,
+    source: "yahoo",
+    platforms: ["discord"],
+    sentAt: subMinutes(130),
+    isNew: false,
+  },
+];
+
+export const INITIAL_BOT_CONFIG: BotConfig = {
+  telegram: {
+    enabled: true,
+    botToken: "",
+    chatId: "",
+    messageTemplate:
+      "🔍 *Archive Scout Deal*\n\n*{{title}}*\n\n💴 ¥{{price_jpy}} (~${{price_usd}})\n📉 {{discount}}% below market (${{market_value}})\n\n🏷️ Keyword: {{keyword}}\n🛒 Source: {{source}}\n\n🔗 {{url}}",
+  },
+  discord: {
+    enabled: true,
+    botToken: "",
+    channelId: "",
+    messageTemplate:
+      "**Archive Scout Deal** 🔍\n\n**{{title}}**\n\n💴 ¥{{price_jpy}} (~${{price_usd}})\n📉 {{discount}}% below market (${{market_value}})\n\nKeyword: `{{keyword}}` · Source: {{source}}\n\n{{url}}",
+  },
+};
+
+export const CHART_DATA: ChartDataPoint[] = [
+  { day: "Mon", deals: 2, alerts: 5, scraped: 820 },
+  { day: "Tue", deals: 5, alerts: 9, scraped: 940 },
+  { day: "Wed", deals: 1, alerts: 3, scraped: 760 },
+  { day: "Thu", deals: 7, alerts: 14, scraped: 1100 },
+  { day: "Fri", deals: 4, alerts: 8, scraped: 980 },
+  { day: "Sat", deals: 3, alerts: 6, scraped: 870 },
+  { day: "Sun", deals: 6, alerts: 11, scraped: 1020 },
+];
+
+export const BRAND_SHARE: BrandShare[] = [
+  { name: "Undercover", value: 23, color: "#9333ea" },
+  { name: "Kapital", value: 22, color: "#a855f7" },
+  { name: "Issey Miyake", value: 31, color: "#7c3aed" },
+  { name: "Number Nine", value: 18, color: "#6d28d9" },
+  { name: "CDG", value: 8, color: "#5b21b6" },
+  { name: "Other", value: 14, color: "#4c1d95" },
+];
+
+export const INITIAL_SEARCH_SETTINGS: SearchSettings = {
+  maxPriceUsd: 350,
+  dealThresholdPct: 30,
+  checkIntervalMinutes: 15,
+  maxPages: 2,
+  excludeTerms: ["replica", "fake", "inspired by", "bootleg", "copy", "repro", "not authentic"],
+};
+
+export const INITIAL_STATS: DashboardStats = {
+  keywordsTracked: 10,
+  dealsFoundToday: 6,
+  alertsSentToday: 11,
+  avgDiscountPct: 54,
+  listingsScrapedToday: 1020,
+  botRunning: true,
+};
+
+const DEMO_TITLES = [
+  "UNDERCOVER SS03 'Scab' Graphic Tee",
+  "Number (N)ine AW04 Destroyed Knit Sweater",
+  "Kapital Bandana Patch Denim Jacket",
+  "Issey Miyake Pleats Please Pleated Dress",
+  "CDG Homme Plus Padded Jacket AW18",
+  "Beauty:Beast Graphic Print Shirt",
+  "Jungle Jap Vintage Wrap Skirt",
+  "Undercover 'We Make Noise Not Clothes' Hoodie",
+  "Number Nine Velvet Flare Trousers SS05",
+  "Yohji Yamamoto Pour Homme Asymmetric Coat",
+];
+
+export function generateDemoAlert(): DealAlert {
+  const title = DEMO_TITLES[Math.floor(Math.random() * DEMO_TITLES.length)];
+  const priceJpy = Math.floor(Math.random() * 30000) + 8000;
+  const priceUsd = Math.round(priceJpy * 0.0067);
+  const marketValueUsd = Math.floor(Math.random() * 400) + 200;
+  const discountPct = Math.round(((marketValueUsd - priceUsd) / marketValueUsd) * 100);
+  const clamped = Math.max(30, Math.min(discountPct, 75));
+
+  return {
+    id: `demo_${Date.now()}`,
+    title,
+    keyword: INITIAL_KEYWORDS[Math.floor(Math.random() * INITIAL_KEYWORDS.length)].term,
+    priceJpy,
+    priceUsd,
+    marketValueUsd,
+    discountPct: clamped,
+    dealScore: discountToDealScore(clamped),
+    url: "https://zenmarket.jp/en/auction.aspx?itemCode=demo",
+    thumbnail: null,
+    source: Math.random() > 0.5 ? "yahoo" : "mercari",
+    platforms: ["telegram", "discord"],
+    sentAt: new Date().toISOString(),
+    isNew: true,
+  };
+}
