@@ -1,3 +1,14 @@
+# ── Backend (private repo only) ───────────────────────────────────────────────
+api/
+categories/
+scrapers/
+sniper/
+*.py
+*.yaml
+*.toml
+requirements*.txt
+
+# ── Data ──────────────────────────────────────────────────────────────────────
 scout.db
 flipscout.db
 *.db-shm

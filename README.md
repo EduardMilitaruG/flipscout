@@ -1,20 +1,28 @@
 # FlipScout
 
-A Python automation tool that monitors Japanese secondhand marketplaces for underpriced archive fashion and sends real-time alerts to **Telegram** and **Discord**.
+**Japanese arbitrage profit calculator.** Monitors Yahoo Auctions Japan and Mercari JP for underpriced tech, Pokemon cards, and fashion — calculates real EUR margins including shipping and platform fees — and snipers Wallapop/Vinted for matching resale listings.
 
-Japanese platforms like Yahoo Auctions Japan list pieces from Undercover, Number (N)ine, Kapital, Yohji Yamamoto, Comme des Garçons and Issey Miyake at a fraction of Western resale prices. The problem is you'd have to refresh listings manually, around the clock, across multiple platforms, in Japanese. FlipScout does that for you.
+**Live demo:** https://dashboard-two-pearl-54.vercel.app
 
 ---
 
-## Features
+## What it does
 
-- **Real-time scraping** of ZenMarket (Yahoo Auctions Japan proxy) with Cloudflare bypass via TLS fingerprint impersonation
-- **Deal scoring engine** — flags listings that are X% below your estimated market value
-- **Dual-platform alerts** — sends photo + price + deal score to Telegram and Discord simultaneously
-- **Interactive bot UI** — manage keywords, prices and settings directly from Telegram (inline keyboards) or Discord (slash commands + modals), no config file editing needed
-- **Deduplication** — SQLite database ensures you never get alerted for the same listing twice, even across restarts
-- **Scheduler** — runs on a configurable interval (default 15 min) with graceful error handling so it never crashes
-- **Live JPY→USD conversion** pulled from a free exchange rate API, with USD also read directly from ZenMarket's data attributes as a fallback
+1. **Scans** Japanese marketplaces for items in configured categories (tech, Pokemon, fashion)
+2. **Calculates** profit margin: `JP buy price + EMS shipping + platform fee` vs `Spanish resale median`
+3. **Ranks** deals by gross margin % and surfaces the best opportunities in the dashboard
+4. **Snipers** Wallapop and Vinted for listings below target prices, auto-messages sellers on match
+
+---
+
+## Dashboard
+
+React 19 + Vite + Tailwind CSS frontend with a FastAPI backend.
+
+| Page | Features |
+|---|---|
+| Deals | Live deal feed, filter by category/marketplace/margin/confidence, expandable cost breakdown |
+| Sniper | Manage snipe targets, pause/resume engine, event audit log |
 
 ---
 
@@ -22,168 +30,31 @@ Japanese platforms like Yahoo Auctions Japan list pieces from Undercover, Number
 
 | Layer | Technology |
 |---|---|
-| Scraping | `curl_cffi` (Chrome TLS impersonation), `BeautifulSoup4` |
-| Telegram bot | `python-telegram-bot` v21 (async, PTB) |
-| Discord bot | `discord.py` v2 (slash commands, modals, button views) |
-| Database | SQLite via `sqlite3` (WAL mode) |
-| Scheduling | `schedule` + `asyncio` |
-| Config | `PyYAML` + `python-dotenv` |
-| Runtime | Python 3.11+ / `asyncio` |
+| Frontend | React 19, Vite, Tailwind CSS, Recharts |
+| Backend | FastAPI, Uvicorn, SQLite (WAL mode) |
+| Scraping | `curl_cffi` Chrome TLS impersonation (Cloudflare bypass) |
+| Margin engine | EMS weight-tier shipping estimator, per-category fee logic |
+| Sniper | Async Wallapop + Vinted polling, kill switch, daily spend limit |
+| Deployment | Vercel (frontend) + Railway (API) |
+| Tests | Playwright E2E — 48 tests, 100% pass rate |
 
 ---
 
 ## Architecture
 
 ```
-main.py              ← Scheduler + entry point, runs all tasks concurrently
-├── scraper.py       ← ZenMarket scraper (Cloudflare bypass, price extraction)
-├── pricer.py        ← Deal scoring logic (% below market value)
-├── bot_core.py      ← Shared alert formatting for both platforms
-├── bot_telegram.py  ← Telegram bot (inline keyboards, reply-based input)
-├── bot_discord.py   ← Discord bot (slash commands, modals, button views)
-└── db.py            ← SQLite layer (listings, market values, dedup)
+dashboard/          ← React frontend (this repo)
+api/                ← FastAPI REST server (private)
+scrapers/           ← Yahoo Auctions JP + Mercari JP (private)
+sniper/             ← Wallapop + Vinted sniper engine (private)
+margin.py           ← Profit calculation engine (private)
+db.py               ← SQLite schema + queries (private)
 ```
 
-Both bots run as concurrent `asyncio` tasks alongside the scraper scheduler. The scraper uses a `curl_cffi` session that impersonates Chrome's TLS handshake to bypass Cloudflare protection, then parses listing cards using BeautifulSoup with targeted CSS selectors. Prices are read directly from `data-jpy` / `data-usd` HTML attributes on the price element — no currency conversion needed.
-
----
-
-## Setup
-
-### 1. Clone & install
-
-```bash
-git clone https://github.com/YOUR_USERNAME/flipscout
-cd flipscout
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. Get a Telegram bot token
-
-1. Open Telegram → search **@BotFather** → send `/newbot`
-2. Copy the token (format: `123456789:AAH...`)
-3. Send any message to your new bot, then open:
-   ```
-   https://api.telegram.org/botTOKEN/getUpdates
-   ```
-4. Find `"chat":{"id":XXXXXXX}` — that's your chat ID
-
-### 3. Get a Discord bot token
-
-1. Go to [discord.com/developers/applications](https://discord.com/developers/applications) → New Application → Bot
-2. Copy the token from the Bot tab
-3. Under OAuth2 → URL Generator, select scopes: `bot` + `applications.commands`
-4. Bot permissions: `Send Messages`, `Embed Links`, `Attach Files`
-5. Use the generated URL to invite the bot to your server
-6. Right-click your alerts channel → Copy Channel ID (requires Developer Mode in Discord settings)
-
-### 4. Configure secrets
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-```
-TELEGRAM_BOT_TOKEN=your_token
-TELEGRAM_CHAT_ID=your_chat_id
-DISCORD_BOT_TOKEN=your_token
-DISCORD_CHANNEL_ID=your_channel_id
-```
-
-### 5. Edit `config.yaml`
-
-Adjust keywords, price ceiling and deal threshold to your taste. Defaults are pre-filled with 10 archive fashion search terms and conservative market value estimates.
-
-### 6. Run
-
-```bash
-python3 main.py
-```
-
-The tool immediately runs the first scrape, starts both bots, then repeats on the configured interval.
-
----
-
-## Bot Commands
-
-### Telegram — `/manage`
-
-Opens an inline keyboard dashboard inside a single message, edited in-place as you navigate:
-
-```
-📦 FlipScout Dashboard
-[📋 Keywords & Prices]  [⚙️ Settings]
-[📊 Stats]              [❌ Close]
-```
-
-All text input (adding keywords, changing prices, updating settings) is handled via chat reply — no commands to memorise.
-
-### Discord — `/manage`
-
-Opens an ephemeral (private) button menu. All text input uses native Discord **modals** (pop-up dialogs). Changes reflect immediately.
-
-| Command | Description |
-|---|---|
-| `/manage` | Open the full dashboard |
-| `/status` | Listings checked and alerts sent in the last 60 minutes |
-
----
-
-## Configuration Reference
-
-```yaml
-keywords:
-  - "undercover jacket"
-  - "number nine denim"
-
-max_price_usd: 350          # Ignore listings above this price
-deal_threshold_pct: 30      # Alert if 30%+ below market value estimate
-check_interval_minutes: 15
-
-exclude_terms:              # Case-insensitive, disqualifies a listing
-  - replica
-  - fake
-
-market_values:              # Your estimated fair market value per keyword
-  "undercover jacket": 480
-  "number nine denim": 390
-```
-
-Market values are seeded from this file on first run (existing DB entries are not overwritten). After that, update them via `/manage` in either bot — no restart needed.
-
----
-
-## Project Structure
-
-```
-flipscout/
-├── main.py
-├── scraper.py
-├── pricer.py
-├── bot_core.py
-├── bot_telegram.py
-├── bot_discord.py
-├── db.py
-├── config.yaml
-├── .env.example
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Notes
-
-- ZenMarket HTML structure can change. If scraping breaks, inspect the live page and update `_parse_zenmarket_page` in `scraper.py`
-- Browsing ZenMarket is unauthenticated — no account needed
-- Rate limiting: 2–5 second random delays between requests and between keywords
-- All secrets are loaded from `.env` — never hardcoded
+The scraping and sniper logic lives in a private repository. This repo contains the dashboard and API schema.
 
 ---
 
 ## License
 
-MIT
+Copyright © 2026 Eduard Militaru. All rights reserved. See [LICENSE](LICENSE).
