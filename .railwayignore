@@ -2,6 +2,7 @@
 # Include everything needed to run the API server
 
 dashboard/
+nixpacks.toml
 .venv/
 *.db-shm
 *.db-wal
