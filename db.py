@@ -256,7 +256,7 @@ def get_deals(
     limit: int = 100,
 ) -> list[dict]:
     query = """
-        SELECT l.title, l.url, l.thumbnail, l.price_jpy, l.category,
+        SELECT d.id, l.title, l.url, l.thumbnail, l.price_jpy, l.category,
                l.marketplace, l.condition, l.seen_at,
                d.jp_price_eur, d.shipping_eur, d.platform_fee_eur,
                d.spanish_resale_eur, d.comparable_count,

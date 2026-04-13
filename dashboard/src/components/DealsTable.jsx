@@ -1,108 +1,151 @@
 import { useState } from 'react'
-import { ExternalLink, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
-function marginColor(pct) {
-  if (pct >= 30) return 'text-emerald-400'
-  if (pct >= 15) return 'text-yellow-400'
-  return 'text-red-400'
+// ── Margin tier ────────────────────────────────────────────────────────────
+
+function tier(pct) {
+  if (pct >= 30) return 'high'
+  if (pct >= 15) return 'mid'
+  return 'low'
 }
 
-function marginBg(pct) {
-  if (pct >= 30) return 'bg-emerald-500/10 border-emerald-500/30'
-  if (pct >= 15) return 'bg-yellow-500/10 border-yellow-500/30'
-  return 'bg-red-500/10 border-red-500/30'
+const TIER_STYLE = {
+  high: { leftBorder: 'border-l-2 border-l-t-orange', numColor: 'text-t-orange', dot: 'bg-t-orange' },
+  mid:  { leftBorder: 'border-l-2 border-l-t-amber',  numColor: 'text-t-amber',  dot: 'bg-t-amber'  },
+  low:  { leftBorder: 'border-l-2 border-l-t-dim',    numColor: 'text-t-red',    dot: 'bg-t-red'    },
 }
 
-function ConfidenceDot({ confidence }) {
-  const map = { high: 'bg-blue-400', medium: 'bg-yellow-400', low: 'bg-gray-500' }
-  return (
-    <span className="flex items-center gap-1 text-xs text-gray-400">
-      <span className={`w-2 h-2 rounded-full inline-block ${map[confidence] ?? 'bg-gray-600'}`} />
-      {confidence}
-    </span>
-  )
+const CONF_COLOR = {
+  high:   'text-t-green',
+  medium: 'text-t-amber',
+  low:    'text-t-muted',
 }
 
-function DealRow({ deal }) {
-  const [expanded, setExpanded] = useState(false)
+function fmt(n, d = 2) { return n != null ? n.toFixed(d) : '—' }
+
+// ── Deal Row ───────────────────────────────────────────────────────────────
+
+function DealRow({ deal, index }) {
+  const [open, setOpen] = useState(false)
+  const t = tier(deal.margin_pct)
+  const { leftBorder, numColor, dot } = TIER_STYLE[t]
+  const isHighValue = deal.margin_pct >= 30
 
   return (
     <>
       <tr
-        className="border-t border-gray-800 hover:bg-gray-800/50 cursor-pointer transition-colors"
-        onClick={() => setExpanded(v => !v)}
+        className={`deal-row border-t border-t-border cursor-pointer ${leftBorder} ${isHighValue ? 'bg-t-orange/[0.03]' : ''}`}
+        onClick={() => setOpen(v => !v)}
       >
-        <td className="py-3 pl-4 pr-2 max-w-xs">
-          <div className="flex items-start gap-2">
+        {/* Row index */}
+        <td className="py-2 pl-3 pr-1 w-8">
+          <span className="font-mono text-[10px] text-t-dim">{String(index + 1).padStart(2, '0')}</span>
+        </td>
+
+        {/* Item */}
+        <td className="py-2 pr-3">
+          <div className="flex items-center gap-2">
             {deal.thumbnail && (
               <img
                 src={deal.thumbnail}
                 alt=""
-                className="w-10 h-10 rounded object-cover shrink-0 mt-0.5"
+                className="w-7 h-7 object-cover shrink-0 grayscale opacity-70"
                 onError={e => { e.target.style.display = 'none' }}
               />
             )}
             <div className="min-w-0">
-              <div className="text-sm font-medium text-gray-100 truncate">{deal.title}</div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                {deal.category} · {deal.marketplace?.replace('_', ' ')}
+              <div className="text-sm text-t-text truncate max-w-[240px] font-body font-medium leading-tight">
+                {deal.title}
+              </div>
+              <div className="font-mono text-[10px] text-t-muted mt-0.5">
+                {deal.category?.toUpperCase()} · {deal.marketplace?.replace('_', ' ').toUpperCase()}
               </div>
             </div>
           </div>
         </td>
-        <td className="py-3 px-3 text-sm text-gray-300 whitespace-nowrap">
-          ¥{Number(deal.price_jpy).toLocaleString()}
-          <div className="text-xs text-gray-500">€{deal.jp_price_eur?.toFixed(2)}</div>
+
+        {/* JP Price */}
+        <td className="py-2 px-3 text-right">
+          <div className="font-mono text-xs text-t-text">¥{Number(deal.price_jpy).toLocaleString()}</div>
+          <div className="font-mono text-[10px] text-t-muted">€{fmt(deal.jp_price_eur)}</div>
         </td>
-        <td className="py-3 px-3 text-sm text-gray-300">
-          €{deal.spanish_resale_eur?.toFixed(2)}
-          <div className="mt-0.5"><ConfidenceDot confidence={deal.confidence} /></div>
+
+        {/* ES Resale — blue accent (ARC-Division style) */}
+        <td className="py-2 px-3 text-right">
+          <div className="font-mono text-xs text-t-blue font-medium">€{fmt(deal.spanish_resale_eur)}</div>
+          <div className={`font-mono text-[10px] ${CONF_COLOR[deal.confidence] ?? 'text-t-muted'}`}>
+            {deal.confidence?.toUpperCase() ?? '—'}
+          </div>
         </td>
-        <td className="py-3 px-3">
-          <span className={`inline-flex items-center gap-1 text-sm font-bold ${marginColor(deal.margin_pct)}`}>
-            {deal.is_risky && <AlertTriangle size={12} className="text-yellow-500" />}
-            {deal.margin_pct?.toFixed(1)}%
-          </span>
-          <div className="text-xs text-gray-400">€{deal.gross_margin_eur?.toFixed(2)}</div>
+
+        {/* Margin — big Barlow display number */}
+        <td className="py-2 px-3 text-right">
+          <div className={`font-display font-black text-2xl leading-none ${numColor}`}>
+            {deal.is_risky && <span className="text-t-amber text-sm mr-0.5">!</span>}
+            {fmt(deal.margin_pct, 1)}%
+          </div>
+          <div className="font-mono text-[10px] text-t-muted">€{fmt(deal.gross_margin_eur)}</div>
         </td>
-        <td className="py-3 px-3">
+
+        {/* Link */}
+        <td className="py-2 px-2">
           <a
             href={deal.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="text-t-sub hover:text-t-blue transition-colors"
             onClick={e => e.stopPropagation()}
           >
-            <ExternalLink size={15} />
+            <ExternalLink size={13} />
           </a>
         </td>
-        <td className="py-3 pr-4 text-gray-600">
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+
+        {/* Expand toggle */}
+        <td className="py-2 pr-3 font-mono text-[10px] text-t-dim text-right">
+          {open ? '▲' : '▼'}
         </td>
       </tr>
 
-      {expanded && (
-        <tr className="border-t border-gray-800 bg-gray-900/60">
-          <td colSpan={6} className="py-4 px-6">
-            <div className={`rounded-lg border p-4 text-sm space-y-2 ${marginBg(deal.margin_pct)}`}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <CostLine label="JP buy price" value={`€${deal.jp_price_eur?.toFixed(2)}`} />
-                <CostLine label="Shipping (EMS)" value={`€${deal.shipping_eur?.toFixed(2)}`} />
-                <CostLine label="Platform fee" value={`€${deal.platform_fee_eur?.toFixed(2)}`} />
-                <CostLine label="ES resale (median)" value={`€${deal.spanish_resale_eur?.toFixed(2)}`} bold />
+      {/* Expanded row — ticket / pass aesthetic */}
+      {open && (
+        <tr className={`border-t border-t-border ${leftBorder}`}>
+          <td colSpan={7} className="p-0">
+            <div className="bg-t-surface border-b border-t-border flex">
+
+              {/* Left: cost breakdown */}
+              <div className="flex-1 px-8 py-3 grid grid-cols-5 gap-4">
+                <CostLine label="JP BUY"        value={`€${fmt(deal.jp_price_eur)}`}           />
+                <CostLine label="SHIPPING"      value={`€${fmt(deal.shipping_eur)}`}            />
+                <CostLine label="PLATFORM FEE"  value={`€${fmt(deal.platform_fee_eur)}`}        />
+                <CostLine label="ES RESALE"     value={`€${fmt(deal.spanish_resale_eur)}`} blue />
+                <CostLine
+                  label="NET PROFIT"
+                  value={`€${fmt(deal.gross_margin_eur)}`}
+                  sub={`${fmt(deal.margin_pct, 1)}%`}
+                  orange={deal.margin_pct >= 30}
+                />
               </div>
-              <div className={`font-bold mt-2 ${marginColor(deal.margin_pct)}`}>
-                Gross profit: €{deal.gross_margin_eur?.toFixed(2)} ({deal.margin_pct?.toFixed(1)}%)
+
+              {/* Right: ticket stub (perforated edge + serial) */}
+              <div className="ticket-edge-l px-4 py-3 flex flex-col items-center justify-center gap-1 min-w-[100px] bg-t-bg">
+                <div className="font-mono text-[9px] text-t-muted tracking-widest">COMPARABLES</div>
+                <div className="font-display font-black text-3xl text-t-text leading-none">
+                  {deal.comparable_count ?? '—'}
+                </div>
+                <div className={`font-mono text-[9px] ${CONF_COLOR[deal.confidence]}`}>
+                  {deal.confidence?.toUpperCase()}
+                </div>
                 {deal.is_risky && (
-                  <span className="ml-2 text-yellow-400 font-normal text-xs">
-                    ⚠️ Shipping exceeds 40% of gross margin
-                  </span>
+                  <div className="font-mono text-[9px] text-t-amber mt-1">⚠ RISKY</div>
                 )}
               </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Found: {new Date(deal.seen_at).toLocaleString()} ·
-                Comparables: {deal.comparable_count} ({deal.confidence} confidence)
-              </div>
+            </div>
+
+            {/* Meta strip */}
+            <div className="px-8 py-1.5 border-b border-t-border bg-t-bg flex gap-6 font-mono text-[10px] text-t-muted">
+              <span>SEEN {new Date(deal.seen_at).toLocaleString()}</span>
+              <span className="text-t-dim">│</span>
+              <span>SN: {deal.url?.slice(-12).toUpperCase().replace(/[^A-Z0-9]/g, '-')}</span>
             </div>
           </td>
         </tr>
@@ -111,31 +154,39 @@ function DealRow({ deal }) {
   )
 }
 
-function CostLine({ label, value, bold }) {
+function CostLine({ label, value, sub, blue, orange }) {
   return (
-    <div>
-      <div className="text-xs text-gray-400">{label}</div>
-      <div className={`text-gray-100 ${bold ? 'font-bold' : ''}`}>{value}</div>
+    <div className="border-l border-t-border pl-3">
+      <div className="font-mono text-[9px] text-t-muted tracking-widest mb-0.5">{label}</div>
+      <div className={`font-mono text-xs ${blue ? 'text-t-blue' : orange ? 'text-t-orange' : 'text-t-text'}`}>
+        {value}
+      </div>
+      {sub && <div className={`font-mono text-[10px] ${orange ? 'text-t-orange' : 'text-t-muted'}`}>{sub}</div>}
     </div>
   )
 }
 
+// ── Table ──────────────────────────────────────────────────────────────────
+
 export default function DealsTable({ deals }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <div className="border border-t-border bg-t-surface overflow-hidden">
       <table className="w-full">
         <thead>
-          <tr className="text-xs text-gray-400 uppercase tracking-wide">
-            <th className="py-3 pl-4 pr-2 text-left">Item</th>
-            <th className="py-3 px-3 text-left">JP Price</th>
-            <th className="py-3 px-3 text-left">ES Resale</th>
-            <th className="py-3 px-3 text-left">Margin</th>
-            <th className="py-3 px-3 text-left">Link</th>
-            <th className="py-3 pr-4" />
+          <tr className="border-b border-t-border bg-t-panel">
+            <th className="py-2 pl-3 w-8" />
+            <th className="py-2 pr-3 text-left font-mono text-[9px] text-t-muted tracking-widest">ITEM</th>
+            <th className="py-2 px-3 text-right font-mono text-[9px] text-t-muted tracking-widest">JP PRICE</th>
+            <th className="py-2 px-3 text-right font-mono text-[9px] text-t-blue tracking-widest">RESALE</th>
+            <th className="py-2 px-3 text-right font-mono text-[9px] text-t-muted tracking-widest">MARGIN</th>
+            <th className="py-2 px-2 w-6" />
+            <th className="py-2 pr-3 w-6" />
           </tr>
         </thead>
         <tbody>
-          {deals.map((deal, i) => <DealRow key={deal.url ?? i} deal={deal} />)}
+          {deals.map((deal, i) => (
+            <DealRow key={deal.id ?? deal.url} deal={deal} index={i} />
+          ))}
         </tbody>
       </table>
     </div>
