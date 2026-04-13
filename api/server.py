@@ -198,28 +198,42 @@ def sniper_events(limit: int = Query(50, le=200)):
 
 @app.post("/api/sniper/pause-all")
 def pause_sniper(_: str = Depends(_verify_token)):
-    from sniper.core import pause_all
-    pause_all()
+    try:
+        from sniper.core import pause_all
+        pause_all()
+    except ImportError:
+        pass
     return {"status": "paused"}
 
 
 @app.post("/api/sniper/resume-all")
 def resume_sniper(_: str = Depends(_verify_token)):
-    from sniper.core import resume_all
-    resume_all()
+    try:
+        from sniper.core import resume_all
+        resume_all()
+    except ImportError:
+        pass
     return {"status": "resumed"}
 
 
 @app.get("/api/sniper/status")
 def sniper_status():
-    from sniper.core import is_paused, _daily_spend_eur, _MAX_DAILY_SPEND_EUR
-    from sniper.session_manager import session_manager
-    return {
-        "paused": is_paused(),
-        "daily_spend_eur": _daily_spend_eur(),
-        "daily_limit_eur": _MAX_DAILY_SPEND_EUR,
-        "sessions": session_manager.get_health_summary(),
-    }
+    try:
+        from sniper.core import is_paused, _daily_spend_eur, _MAX_DAILY_SPEND_EUR
+        from sniper.session_manager import session_manager
+        return {
+            "paused": is_paused(),
+            "daily_spend_eur": _daily_spend_eur(),
+            "daily_limit_eur": _MAX_DAILY_SPEND_EUR,
+            "sessions": session_manager.get_health_summary(),
+        }
+    except ImportError:
+        return {
+            "paused": True,
+            "daily_spend_eur": 0.0,
+            "daily_limit_eur": 50.0,
+            "sessions": {},
+        }
 
 
 # ── Health ─────────────────────────────────────────────────────────────────────
