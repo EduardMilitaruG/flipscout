@@ -1,15 +1,35 @@
 # Railway ignores this file instead of .gitignore
-# Include everything needed to run the API server
+# Only upload what the API server needs
 
+# Frontend (deployed separately to Vercel)
 dashboard/
+
+# Dev tools and environment
 nixpacks.toml
 .venv/
+.DS_Store
+.rtk/
+
+# Runtime artifacts
 *.db-shm
 *.db-wal
 scout.db
+flipscout.db
 scout.log
-.DS_Store
-.rtk/
+sniper_audit.log
 __pycache__/
 *.pyc
 .env
+
+# Non-API backend modules (scrapers, bots, CLI tools)
+bot.py
+bot_core.py
+bot_discord.py
+bot_telegram.py
+main.py
+margin.py
+pricer.py
+shipping.py
+scrapers/
+sniper/
+categories/
