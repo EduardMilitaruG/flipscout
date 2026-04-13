@@ -1,0 +1,14 @@
+# Railway ignores this file instead of .gitignore
+# Include everything needed to run the API server
+
+dashboard/
+.venv/
+*.db-shm
+*.db-wal
+scout.db
+scout.log
+.DS_Store
+.rtk/
+__pycache__/
+*.pyc
+.env
