@@ -6,6 +6,8 @@
 **User:** admin123  
 **Password:** admin123
 
+![FlipScout Demo](assets/demo.gif)
+
 ---
 
 ## What it does
