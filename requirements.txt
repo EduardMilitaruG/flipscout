@@ -3,7 +3,6 @@
 
 # ── HTTP & scraping ────────────────────────────────────────────────────────────
 curl_cffi>=0.7.0          # Chrome TLS fingerprint impersonation (Cloudflare bypass)
-audioop-lts>=0.2.1
 beautifulsoup4==4.12.3
 lxml==5.2.1
 requests>=2.31.0          # eBay Finding API, Cardmarket, currency rates
