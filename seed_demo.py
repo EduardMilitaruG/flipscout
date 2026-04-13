@@ -7,6 +7,7 @@ import sqlite3
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+import sys
 import random
 
 DB_PATH = Path(__file__).parent / "flipscout.db"
@@ -468,6 +469,10 @@ EVENTS = [
 # ── Insert ─────────────────────────────────────────────────────────────────────
 
 def run():
+    # Ensure tables exist before seeding
+    import db as _db
+    _db.init_db()
+
     conn = get_conn()
 
     # Wipe existing demo data
