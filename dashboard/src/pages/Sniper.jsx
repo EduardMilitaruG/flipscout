@@ -3,6 +3,7 @@ import { Plus, Pause, Play, RefreshCw } from 'lucide-react'
 import SniperStatusStrip from '../components/SniperStatusStrip'
 import TargetsTable from '../components/TargetsTable'
 import EventLog from '../components/EventLog'
+import { apiFetch } from '../auth'
 
 const DEFAULT_FORM = {
   id: '', query: '', category: 'general',
@@ -47,23 +48,23 @@ export default function Sniper() {
 
   const togglePause = async () => {
     const url = status?.paused ? '/api/sniper/resume-all' : '/api/sniper/pause-all'
-    await fetch(url, { method: 'POST' })
+    await apiFetch(url, { method: 'POST' })
     fetchAll()
   }
 
   const toggleTarget = async (id, active) => {
-    await fetch(`/api/sniper/targets/${id}/toggle?active=${!active}`, { method: 'PATCH' })
+    await apiFetch(`/api/sniper/targets/${id}/toggle?active=${!active}`, { method: 'PATCH' })
     fetchAll()
   }
 
   const deleteTarget = async (id) => {
-    await fetch(`/api/sniper/targets/${id}`, { method: 'DELETE' })
+    await apiFetch(`/api/sniper/targets/${id}`, { method: 'DELETE' })
     fetchAll()
   }
 
   const createTarget = async () => {
     if (!form.id || !form.query || !form.max_buy_price_eur) return
-    await fetch('/api/sniper/targets', {
+    await apiFetch('/api/sniper/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, max_buy_price_eur: Number(form.max_buy_price_eur) }),
