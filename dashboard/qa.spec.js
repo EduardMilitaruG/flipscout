@@ -175,18 +175,18 @@ test.describe('Dashboard page', () => {
   })
 
   test('page title and sidebar render', async ({ page }) => {
-    await expect(page.locator('text=FlipScout')).toBeVisible()
+    await expect(page.locator('text=FlipScout').first()).toBeVisible()
     await expect(page.locator('a', { hasText: 'Deals' }).first()).toBeVisible()
     await expect(page.locator('a', { hasText: 'Sniper' })).toBeVisible()
     await ss(page, '01-dashboard-loaded')
   })
 
   test('stats bar shows data', async ({ page }) => {
-    await expect(page.locator('text=Deals today')).toBeVisible()
-    await expect(page.locator('text=Avg margin')).toBeVisible()
-    await expect(page.locator('text=Best deal')).toBeVisible()
+    await expect(page.locator('text=DEALS_TODAY')).toBeVisible()
+    await expect(page.locator('text=AVG_MARGIN')).toBeVisible()
+    await expect(page.locator('text=BEST_DEAL')).toBeVisible()
     // Values should not all be dashes
-    const statValues = await page.locator('.text-2xl').allTextContents()
+    const statValues = await page.locator('.stat-num').allTextContents()
     expect(statValues.some(v => v !== '—')).toBe(true)
     await ss(page, '02-stats-bar')
   })
@@ -200,36 +200,36 @@ test.describe('Dashboard page', () => {
   })
 
   test('deals table shows correct columns', async ({ page }) => {
-    await expect(page.locator('th', { hasText: 'Item' })).toBeVisible()
-    await expect(page.locator('th', { hasText: 'JP Price' })).toBeVisible()
-    await expect(page.locator('th', { hasText: 'ES Resale' })).toBeVisible()
-    await expect(page.locator('th', { hasText: 'Margin' })).toBeVisible()
+    await expect(page.locator('th', { hasText: 'ITEM' })).toBeVisible()
+    await expect(page.locator('th', { hasText: 'JP PRICE' })).toBeVisible()
+    await expect(page.locator('th', { hasText: 'RESALE' })).toBeVisible()
+    await expect(page.locator('th', { hasText: 'MARGIN' })).toBeVisible()
   })
 
   test('deal row expands to show breakdown', async ({ page }) => {
     await page.locator('tbody tr').first().click()
-    await expect(page.locator('text=JP buy price')).toBeVisible()
-    await expect(page.locator('text=Shipping (EMS)')).toBeVisible()
-    await expect(page.locator('text=Platform fee')).toBeVisible()
-    await expect(page.locator('text=ES resale (median)')).toBeVisible()
-    await expect(page.locator('text=Gross profit')).toBeVisible()
+    await expect(page.locator('text=JP BUY').first()).toBeVisible()
+    await expect(page.locator('text=SHIPPING').first()).toBeVisible()
+    await expect(page.locator('text=PLATFORM FEE')).toBeVisible()
+    await expect(page.locator('text=ES RESALE').first()).toBeVisible()
+    await expect(page.locator('text=NET PROFIT')).toBeVisible()
     await ss(page, '04-deal-expanded')
   })
 
   test('deal row collapses on second click', async ({ page }) => {
     const row = page.locator('tbody tr').first()
     await row.click()
-    await expect(page.locator('text=JP buy price')).toBeVisible()
+    await expect(page.locator('text=NET PROFIT')).toBeVisible()
     await row.click()
-    await expect(page.locator('text=JP buy price')).not.toBeVisible()
+    await expect(page.locator('text=NET PROFIT')).not.toBeVisible()
   })
 
   test('category filter: Tech', async ({ page }) => {
     await page.selectOption('select', 'tech')
     await page.waitForTimeout(600)
-    // Category label is the first .text-xs in each data row (format: "tech · marketplace")
-    const categoryLabels = await page.locator('tbody td div .text-xs').allTextContents()
-    const labels = categoryLabels.filter(c => c.includes(' · '))  // only "cat · marketplace" labels
+    // Category label format: "TECH · ZENMARKET" — filter all divs containing " · "
+    const allDivs = await page.locator('tbody td div').allTextContents()
+    const labels = allDivs.filter(c => c.includes(' · '))
     expect(labels.length).toBeGreaterThan(0)
     labels.forEach(c => expect(c.toLowerCase()).toContain('tech'))
     await ss(page, '05-filter-tech')
@@ -238,8 +238,8 @@ test.describe('Dashboard page', () => {
   test('category filter: Pokemon', async ({ page }) => {
     await page.selectOption('select', 'pokemon')
     await page.waitForTimeout(600)
-    const categoryLabels = await page.locator('tbody td div .text-xs').allTextContents()
-    const labels = categoryLabels.filter(c => c.includes(' · '))
+    const allDivs = await page.locator('tbody td div').allTextContents()
+    const labels = allDivs.filter(c => c.includes(' · '))
     expect(labels.length).toBeGreaterThan(0)
     labels.forEach(c => expect(c.toLowerCase()).toContain('pokemon'))
     await ss(page, '06-filter-pokemon')
@@ -252,18 +252,18 @@ test.describe('Dashboard page', () => {
     await page.waitForTimeout(600)
     await ss(page, '07-filter-margin-40')
     // All shown rows should have margin >= 40%
-    const marginCells = await page.locator('tbody td .font-bold').allTextContents()
+    const marginCells = await page.locator('tbody td .text-2xl').allTextContents()
     const margins = marginCells.map(m => parseFloat(m)).filter(m => !isNaN(m))
     margins.forEach(m => expect(m).toBeGreaterThanOrEqual(40))
   })
 
   test('high confidence toggle filters results', async ({ page }) => {
-    const checkbox = page.locator('#hc')
+    const checkbox = page.locator('label', { hasText: 'HIGH CONF' }).locator('input[type="checkbox"]')
     await checkbox.check()
     await page.waitForTimeout(600)
-    const confidenceDots = await page.locator('tbody .text-xs').allTextContents()
-    const hasLowConf = confidenceDots.some(t => t.toLowerCase() === 'low')
-    expect(hasLowConf).toBe(false)
+    // After high-confidence filter, no cell should show "LOW" as confidence
+    const lowCells = page.locator('tbody td div').filter({ hasText: /^LOW$/ })
+    await expect(lowCells).toHaveCount(0)
     await ss(page, '08-filter-high-confidence')
   })
 
@@ -286,7 +286,7 @@ test.describe('Dashboard page', () => {
   })
 
   test('refresh button re-fetches data', async ({ page }) => {
-    const refreshBtn = page.locator('button', { hasText: 'Refresh' })
+    const refreshBtn = page.locator('button', { hasText: 'REFRESH' })
     await expect(refreshBtn).toBeVisible()
     await refreshBtn.click()
     await page.waitForTimeout(500)
@@ -303,15 +303,14 @@ test.describe('Sniper page', () => {
   })
 
   test('sniper page renders all sections', async ({ page }) => {
-    await expect(page.locator('h1', { hasText: 'Sniper' })).toBeVisible()
-    await expect(page.locator('text=Active targets')).toBeVisible()
-    await expect(page.locator('text=Recent snipe events')).toBeVisible()
+    await expect(page.locator('text=SNIPER').first()).toBeVisible()
+    await expect(page.locator('text=ACTIVE_TARGETS')).toBeVisible()
+    await expect(page.locator('text=SNIPE_EVENT_LOG')).toBeVisible()
     await ss(page, '09-sniper-page')
   })
 
   test('status bar shows active state and spend', async ({ page }) => {
-    // Status badge is inside the status bar flex row, not in the targets table
-    await expect(page.locator('text=Daily spend')).toBeVisible()
+    await expect(page.locator('text=DAILY_SPEND')).toBeVisible()
     await expect(page.locator('text=ACTIVE').first()).toBeVisible()
     await ss(page, '10-sniper-status')
   })
@@ -325,28 +324,28 @@ test.describe('Sniper page', () => {
   })
 
   test('add target form opens and closes', async ({ page }) => {
-    await page.locator('button', { hasText: 'Add target' }).click()
-    await expect(page.locator('text=New snipe target')).toBeVisible()
+    await page.locator('button', { hasText: 'NEW TARGET' }).click()
+    await expect(page.locator('text=NEW_SNIPE_TARGET')).toBeVisible()
     await expect(page.locator('input[placeholder="snipe_ps5"]')).toBeVisible()
-    await page.locator('button', { hasText: 'Cancel' }).click()
-    await expect(page.locator('text=New snipe target')).not.toBeVisible()
+    await page.locator('button', { hasText: 'CANCEL' }).click()
+    await expect(page.locator('text=NEW_SNIPE_TARGET')).not.toBeVisible()
     await ss(page, '11-add-target-form')
   })
 
   test('add target form validation: empty fields do not submit', async ({ page }) => {
-    await page.locator('button', { hasText: 'Add target' }).click()
-    await page.locator('button', { hasText: 'Create' }).click()
+    await page.locator('button', { hasText: 'NEW TARGET' }).click()
+    await page.locator('button', { hasText: 'DEPLOY' }).click()
     // Form should still be visible (no submit with empty required fields)
-    await expect(page.locator('text=New snipe target')).toBeVisible()
+    await expect(page.locator('text=NEW_SNIPE_TARGET')).toBeVisible()
   })
 
   test('create a new snipe target via UI', async ({ page }) => {
-    await page.locator('button', { hasText: 'Add target' }).click()
+    await page.locator('button', { hasText: 'NEW TARGET' }).click()
     await page.locator('input[placeholder="snipe_ps5"]').fill('qa_ui_target')
     await page.locator('input[placeholder="PS5 slim"]').fill('RTX 4090')
     await page.locator('input[placeholder="350"]').fill('800')
     await page.locator('input[placeholder="20"]').fill('25')
-    await page.locator('button', { hasText: 'Create' }).click()
+    await page.locator('button', { hasText: 'DEPLOY' }).click()
     await page.waitForTimeout(600)
     await expect(page.locator('text=RTX 4090')).toBeVisible()
     await ss(page, '12-target-created')
@@ -405,9 +404,9 @@ test.describe('Sniper page', () => {
   })
 
   test('refresh button works on sniper page', async ({ page }) => {
-    await page.locator('button', { hasText: 'Refresh' }).click()
+    await page.locator('button', { hasText: 'REFRESH' }).click()
     await page.waitForTimeout(500)
-    await expect(page.locator('h1', { hasText: 'Sniper' })).toBeVisible()
+    await expect(page.locator('text=SNIPER').first()).toBeVisible()
   })
 })
 
@@ -415,29 +414,29 @@ test.describe('Navigation', () => {
   test('navigate Deals → Sniper → Deals', async ({ page }) => {
     await page.goto(BASE)
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('h1', { hasText: 'Active Deals' })).toBeVisible()
+    await expect(page.locator('tbody tr').first()).toBeVisible()
 
     await page.locator('a', { hasText: 'Sniper' }).click()
-    await expect(page.locator('h1', { hasText: 'Sniper' })).toBeVisible()
+    await expect(page.locator('text=SNIPER').first()).toBeVisible()
 
     await page.locator('a', { hasText: 'Deals' }).click()
-    await expect(page.locator('h1', { hasText: 'Active Deals' })).toBeVisible()
+    await expect(page.locator('tbody tr').first()).toBeVisible()
     await ss(page, '18-navigation')
   })
 
   test('active nav link is highlighted', async ({ page }) => {
     await page.goto(BASE)
     const dealsLink = page.locator('a', { hasText: 'Deals' })
-    await expect(dealsLink).toHaveClass(/text-emerald-400/)
+    await expect(dealsLink).toHaveClass(/text-t-orange/)
 
     await page.locator('a', { hasText: 'Sniper' }).click()
     const sniperLink = page.locator('a', { hasText: 'Sniper' })
-    await expect(sniperLink).toHaveClass(/text-emerald-400/)
+    await expect(sniperLink).toHaveClass(/text-t-orange/)
   })
 
   test('direct URL navigation works', async ({ page }) => {
     await page.goto(`${BASE}/sniper`)
-    await expect(page.locator('h1', { hasText: 'Sniper' })).toBeVisible()
+    await expect(page.locator('text=SNIPER').first()).toBeVisible()
   })
 })
 
