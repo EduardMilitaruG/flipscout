@@ -1,33 +1,24 @@
-# ── Backend (private repo only) ───────────────────────────────────────────────
-api/
-categories/
-scrapers/
-sniper/
-*.py
-*.yaml
-*.toml
-requirements*.txt
-
-# ── Data ──────────────────────────────────────────────────────────────────────
+# ── Secrets & Data ────────────────────────────────────────────────────────────
+.env
 scout.db
 flipscout.db
 *.db-shm
 *.db-wal
-scout.db-shm
-scout.db-wal
-flipscout.db-shm
-flipscout.db-wal
 scout.log
-.env
+sniper_audit.log
+
+# ── Python build artifacts ─────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 .venv/
+
+# ── Node / Dashboard ──────────────────────────────────────────────────────────
 node_modules/
 dashboard/dist/
 dashboard/test-results/
 dashboard/qa-screenshots/
-sniper_audit.log
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
 .DS_Store
 .rtk/
-index.html
