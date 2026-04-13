@@ -2,7 +2,9 @@
 
 **Japanese arbitrage profit calculator.** Monitors Yahoo Auctions Japan and Mercari JP for underpriced tech, Pokemon cards, and fashion — calculates real EUR margins including shipping and platform fees — and snipers Wallapop/Vinted for matching resale listings.
 
-**Live demo:** https://dashboard-two-pearl-54.vercel.app   **User:** admin123  **Password:** admin123
+**Live demo:** https://dashboard-two-pearl-54.vercel.app   
+**User:** admin123  
+**Password:** admin123
 
 ---
 
