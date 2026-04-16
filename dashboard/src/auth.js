@@ -2,8 +2,8 @@
 
 const KEY = 'fs_token'
 
-export const getToken  = ()      => sessionStorage.getItem(KEY)
-export const setToken  = (t)     => sessionStorage.setItem(KEY, t)
+const getToken  = ()      => sessionStorage.getItem(KEY)
+const setToken  = (t)     => sessionStorage.setItem(KEY, t)
 export const clearToken = ()     => sessionStorage.removeItem(KEY)
 export const isAuthed  = ()      => !!getToken()
 
