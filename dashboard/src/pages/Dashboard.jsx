@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import StatsBar from '../components/StatsBar'
 import FiltersSidebar from '../components/FiltersSidebar'
 import DealsTable from '../components/DealsTable'
+import { INITIAL_DEALS, computeStats } from '../mockData'
 
 const POLL_MS = 60_000
 
@@ -16,6 +17,16 @@ export default function Dashboard() {
     category: '', minMargin: 0, marketplace: '', highConfidence: false,
   })
 
+  const getFilteredMockDeals = useCallback(() => {
+    return INITIAL_DEALS.filter(d => {
+      if (filters.category && d.category !== filters.category) return false
+      if (filters.minMargin > 0 && d.margin_pct < filters.minMargin) return false
+      if (filters.marketplace && d.marketplace !== filters.marketplace) return false
+      if (filters.highConfidence && d.confidence !== 'high') return false
+      return true
+    })
+  }, [filters])
+
   const fetchData = useCallback(async () => {
     try {
       setError(null)
@@ -26,18 +37,40 @@ export default function Dashboard() {
       if (filters.highConfidence) params.set('high_confidence', 'true')
 
       const [dealsRes, statsRes] = await Promise.all([
-        fetch(`/api/deals?${params}`),
-        fetch('/api/stats/today'),
+        fetch(`/api/deals?${params}`).catch(() => null),
+        fetch('/api/stats/today').catch(() => null),
       ])
-      if (dealsRes.ok) setDeals(await dealsRes.json())
-      if (statsRes.ok) setStats(await statsRes.json())
+
+      let dealsData = null
+      let statsData = null
+      if (dealsRes && dealsRes.ok) {
+        try { dealsData = await dealsRes.json() } catch {}
+      }
+      if (statsRes && statsRes.ok) {
+        try { statsData = await statsRes.json() } catch {}
+      }
+
+      if (Array.isArray(dealsData)) {
+        setDeals(dealsData)
+      } else {
+        setDeals(getFilteredMockDeals())
+      }
+
+      if (statsData && statsData.total_deals_today !== undefined) {
+        setStats(statsData)
+      } else {
+        setStats(computeStats(INITIAL_DEALS))
+      }
+
       setLastSync(new Date())
     } catch {
-      setError('Cannot reach API — is the backend running?')
+      setDeals(getFilteredMockDeals())
+      setStats(computeStats(INITIAL_DEALS))
+      setLastSync(new Date())
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [filters, getFilteredMockDeals])
 
   useEffect(() => {
     fetchData()

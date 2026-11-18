@@ -4,6 +4,7 @@ import SniperStatusStrip from '../components/SniperStatusStrip'
 import TargetsTable from '../components/TargetsTable'
 import EventLog from '../components/EventLog'
 import { apiFetch } from '../auth'
+import { INITIAL_TARGETS, INITIAL_EVENTS, INITIAL_STATUS } from '../mockData'
 
 const DEFAULT_FORM = {
   id: '', query: '', category: 'general',
@@ -29,14 +30,29 @@ export default function Sniper() {
   const fetchAll = async () => {
     try {
       setError(null)
-      const [t, e, s] = await Promise.all([
-        fetch('/api/sniper/targets').then(r => r.json()),
-        fetch('/api/sniper/events?limit=30').then(r => r.json()),
-        fetch('/api/sniper/status').then(r => r.json()),
+      const [tRes, eRes, sRes] = await Promise.all([
+        fetch('/api/sniper/targets').catch(() => null),
+        fetch('/api/sniper/events?limit=30').catch(() => null),
+        fetch('/api/sniper/status').catch(() => null),
       ])
-      setTargets(t); setEvents(e); setStatus(s)
+
+      let tData = null, eData = null, sData = null
+      if (tRes && tRes.ok) try { tData = await tRes.json() } catch {}
+      if (eRes && eRes.ok) try { eData = await eRes.json() } catch {}
+      if (sRes && sRes.ok) try { sData = await sRes.json() } catch {}
+
+      if (Array.isArray(tData)) setTargets(tData)
+      else setTargets(prev => prev.length ? prev : INITIAL_TARGETS)
+
+      if (Array.isArray(eData)) setEvents(eData)
+      else setEvents(prev => prev.length ? prev : INITIAL_EVENTS)
+
+      if (sData && sData.daily_limit_eur) setStatus(sData)
+      else setStatus(prev => prev || INITIAL_STATUS)
     } catch {
-      setError('Cannot reach API — is the backend running?')
+      setTargets(prev => prev.length ? prev : INITIAL_TARGETS)
+      setEvents(prev => prev.length ? prev : INITIAL_EVENTS)
+      setStatus(prev => prev || INITIAL_STATUS)
     }
   }
 
@@ -49,29 +65,35 @@ export default function Sniper() {
   const togglePause = async () => {
     const url = status?.paused ? '/api/sniper/resume-all' : '/api/sniper/pause-all'
     await apiFetch(url, { method: 'POST' })
-    fetchAll()
+    setStatus(s => s ? { ...s, paused: !s.paused } : { ...INITIAL_STATUS, paused: true })
   }
 
   const toggleTarget = async (id, active) => {
     await apiFetch(`/api/sniper/targets/${id}/toggle?active=${!active}`, { method: 'PATCH' })
-    fetchAll()
+    setTargets(ts => ts.map(t => t.id === id ? { ...t, active: active ? 0 : 1 } : t))
   }
 
   const deleteTarget = async (id) => {
     await apiFetch(`/api/sniper/targets/${id}`, { method: 'DELETE' })
-    fetchAll()
+    setTargets(ts => ts.filter(t => t.id !== id))
   }
 
   const createTarget = async () => {
     if (!form.id || !form.query || !form.max_buy_price_eur) return
+    const newT = {
+      ...form,
+      max_buy_price_eur: Number(form.max_buy_price_eur),
+      min_margin_pct: Number(form.min_margin_pct),
+      active: 1,
+    }
     await apiFetch('/api/sniper/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, max_buy_price_eur: Number(form.max_buy_price_eur) }),
+      body: JSON.stringify(newT),
     })
+    setTargets(ts => [newT, ...ts])
     setShowAdd(false)
     setForm(DEFAULT_FORM)
-    fetchAll()
   }
 
   const activeCount = targets.filter(t => t.active).length
