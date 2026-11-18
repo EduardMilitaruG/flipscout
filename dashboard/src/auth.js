@@ -11,27 +11,31 @@ export async function login(username, password) {
   const u = (username || '').trim().toLowerCase()
   const p = (password || '').trim()
 
-  // First try backend if available
+  // Demo credentials check (instant for portfolio/showcase)
+  if ((u === 'admin123' || u === 'admin') && p === 'admin123') {
+    setToken('fs_demo_access_token')
+    return
+  }
+
+  // Try live backend for any other operator credentials
   try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 2500)
     const body = new URLSearchParams({ username, password })
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
+      signal: controller.signal,
     })
+    clearTimeout(timer)
     if (res.ok) {
       const { access_token } = await res.json()
       setToken(access_token)
       return
     }
   } catch {
-    // Backend unreachable, fallback to demo check
-  }
-
-  // Demo fallback credentials
-  if ((u === 'admin123' || u === 'admin') && p === 'admin123') {
-    setToken('fs_demo_access_token')
-    return
+    // Backend offline
   }
 
   throw new Error('Invalid credentials')
