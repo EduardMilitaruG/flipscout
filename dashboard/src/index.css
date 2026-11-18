@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-950 text-gray-100 min-h-screen;
+@layer base {
+  body {
+    background-color: #080808;
+    color: #e5e5e5;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom terminal dot matrix background pattern */
+.cross-matrix {
+  background-image: radial-gradient(#1c1c1c 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* Orange badge for FS logo */
+.badge-orange {
+  background-color: #ff5500;
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+/* Ticket edge decorative borders */
+.ticket-edge-l {
+  border-left: 1px dashed #1c1c1c;
+}
+
+/* Custom terminal scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c1c1c;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
 }

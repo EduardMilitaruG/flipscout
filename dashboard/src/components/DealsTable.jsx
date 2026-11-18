@@ -11,97 +11,113 @@ function tier(pct) {
 
 const TIER_STYLE = {
   high: { leftBorder: 'border-l-2 border-l-t-orange', numColor: 'text-t-orange', dot: 'bg-t-orange' },
-  mid:  { leftBorder: 'border-l-2 border-l-t-amber',  numColor: 'text-t-amber',  dot: 'bg-t-amber'  },
+  mid:  { leftBorder: 'border-l-2 border-l-[#f59e0b]',  numColor: 'text-[#f59e0b]',  dot: 'bg-[#f59e0b]'  },
   low:  { leftBorder: 'border-l-2 border-l-t-dim',    numColor: 'text-t-red',    dot: 'bg-t-red'    },
 }
 
 const CONF_COLOR = {
   high:   'text-t-green',
-  medium: 'text-t-amber',
+  medium: 'text-[#f59e0b]',
   low:    'text-t-muted',
 }
 
 function fmt(n, d = 2) { return n != null ? n.toFixed(d) : '—' }
+
+function getBadge(deal) {
+  const kw = (deal.keyword || '').toLowerCase()
+  const title = (deal.title || '').toLowerCase()
+  if (kw.includes('airpods') || title.includes('airpods')) return 'APs'
+  if (kw.includes('xm5') || title.includes('xm5') || title.includes('wh-1000')) return 'XM5'
+  if (kw.includes('switch') || title.includes('switch')) return 'NSW'
+  if (title.includes('anker')) return 'ANK'
+  if (title.includes('x100')) return 'X100'
+  if (kw.includes('ps5') || title.includes('ps5')) return 'PS5'
+  if (title.includes('rog')) return 'ROG'
+  if (title.includes('deck')) return 'SD'
+  if (title.includes('quest')) return 'MQ3'
+  if (title.includes('7c') || title.includes('alpha') || title.includes('α7')) return 'a7C'
+  if (deal.category === 'pokemon') return 'PKM'
+  return (deal.category || 'FS').slice(0, 3).toUpperCase()
+}
 
 // ── Deal Row ───────────────────────────────────────────────────────────────
 
 function DealRow({ deal, index }) {
   const [open, setOpen] = useState(false)
   const t = tier(deal.margin_pct)
-  const { leftBorder, numColor, dot } = TIER_STYLE[t]
+  const { leftBorder, numColor } = TIER_STYLE[t]
   const isHighValue = deal.margin_pct >= 30
+  const badge = getBadge(deal)
+  const marginStr = deal.margin_pct != null
+    ? String(deal.margin_pct.toFixed(1)).padStart(5, '0') + '%'
+    : '—'
 
   return (
     <>
       <tr
-        className={`deal-row border-t border-t-border cursor-pointer ${leftBorder} ${isHighValue ? 'bg-t-orange/[0.03]' : ''}`}
+        className={`deal-row border-t border-t-border cursor-pointer transition-colors hover:bg-t-panel ${leftBorder} ${isHighValue ? 'bg-t-orange/[0.04]' : ''}`}
         onClick={() => setOpen(v => !v)}
       >
-        {/* Row index */}
-        <td className="py-2 pl-3 pr-1 w-8">
-          <span className="font-mono text-[10px] text-t-dim">{String(index + 1).padStart(2, '0')}</span>
+        {/* Row index + Tag Badge */}
+        <td className="py-2.5 pl-3 pr-2 w-14 select-none">
+          <div className="flex items-center gap-1.5 font-mono text-[9px]">
+            <span className="text-t-dim">{String(index + 1).padStart(2, '0')}</span>
+            <span className="bg-[#121212] border border-[#222] text-[#888] px-1 py-0.5 text-[8px] font-bold">
+              {badge}
+            </span>
+          </div>
         </td>
 
         {/* Item */}
-        <td className="py-2 pr-3">
-          <div className="flex items-center gap-2">
-            {deal.thumbnail && (
-              <img
-                src={deal.thumbnail}
-                alt=""
-                className="w-7 h-7 object-cover shrink-0 grayscale opacity-70"
-                onError={e => { e.target.style.display = 'none' }}
-              />
-            )}
-            <div className="min-w-0">
-              <div className="text-sm text-t-text truncate max-w-[240px] font-body font-medium leading-tight">
-                {deal.title}
-              </div>
-              <div className="font-mono text-[10px] text-t-muted mt-0.5">
-                {deal.category?.toUpperCase()} · {deal.marketplace?.replace('_', ' ').toUpperCase()}
-              </div>
+        <td className="py-2.5 pr-3">
+          <div className="min-w-0 pr-4">
+            <div className="text-xs text-t-text truncate max-w-[340px] font-mono font-medium leading-tight">
+              {deal.title}
+            </div>
+            <div className="font-mono text-[9px] text-t-muted mt-0.5 uppercase tracking-wide">
+              {deal.category} · {deal.marketplace?.replace('_', ' ')}
             </div>
           </div>
         </td>
 
         {/* JP Price */}
-        <td className="py-2 px-3 text-right">
+        <td className="py-2.5 px-3 text-right">
           <div className="font-mono text-xs text-t-text">¥{Number(deal.price_jpy).toLocaleString()}</div>
-          <div className="font-mono text-[10px] text-t-muted">€{fmt(deal.jp_price_eur)}</div>
+          <div className="font-mono text-[9px] text-t-muted">€{fmt(deal.jp_price_eur)}</div>
         </td>
 
-        {/* ES Resale — blue accent (ARC-Division style) */}
-        <td className="py-2 px-3 text-right">
+        {/* ES Resale — cyan/blue accent */}
+        <td className="py-2.5 px-3 text-right">
           <div className="font-mono text-xs text-t-blue font-medium">€{fmt(deal.spanish_resale_eur)}</div>
-          <div className={`font-mono text-[10px] ${CONF_COLOR[deal.confidence] ?? 'text-t-muted'}`}>
+          <div className={`font-mono text-[9px] ${CONF_COLOR[deal.confidence] ?? 'text-t-muted'}`}>
             {deal.confidence?.toUpperCase() ?? '—'}
           </div>
         </td>
 
         {/* Margin — big Barlow display number */}
-        <td className="py-2 px-3 text-right">
-          <div className={`font-display font-black text-2xl leading-none ${numColor}`}>
-            {deal.is_risky && <span className="text-t-amber text-sm mr-0.5">!</span>}
-            {fmt(deal.margin_pct, 1)}%
+        <td className="py-2.5 px-3 text-right">
+          <div className={`font-display font-black text-2xl leading-none tracking-tight ${numColor}`}>
+            {deal.is_risky && <span className="text-[#f59e0b] text-sm mr-0.5">!</span>}
+            {marginStr}
           </div>
-          <div className="font-mono text-[10px] text-t-muted">€{fmt(deal.gross_margin_eur)}</div>
+          <div className="font-mono text-[9px] text-t-muted">€{fmt(deal.gross_margin_eur)}</div>
         </td>
 
         {/* Link */}
-        <td className="py-2 px-2">
+        <td className="py-2.5 px-2 w-6 text-center">
           <a
             href={deal.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-t-sub hover:text-t-blue transition-colors"
+            className="text-t-dim hover:text-t-blue transition-colors inline-block"
             onClick={e => e.stopPropagation()}
           >
-            <ExternalLink size={13} />
+            <ExternalLink size={12} />
           </a>
         </td>
 
         {/* Expand toggle */}
-        <td className="py-2 pr-3 font-mono text-[10px] text-t-dim text-right">
+        <td className="py-2.5 pr-3 w-6 font-mono text-[8px] text-t-dim text-right select-none">
           {open ? '▲' : '▼'}
         </td>
       </tr>
@@ -136,7 +152,7 @@ function DealRow({ deal, index }) {
                   {deal.confidence?.toUpperCase()}
                 </div>
                 {deal.is_risky && (
-                  <div className="font-mono text-[9px] text-t-amber mt-1">⚠ RISKY</div>
+                  <div className="font-mono text-[9px] text-[#f59e0b] mt-1">⚠ RISKY</div>
                 )}
               </div>
             </div>
@@ -173,8 +189,8 @@ export default function DealsTable({ deals }) {
     <div className="border border-t-border bg-t-surface overflow-hidden">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-t-border bg-t-panel">
-            <th className="py-2 pl-3 w-8" />
+          <tr className="border-b border-t-border bg-t-panel select-none">
+            <th className="py-2 pl-3 w-14" />
             <th className="py-2 pr-3 text-left font-mono text-[9px] text-t-muted tracking-widest">ITEM</th>
             <th className="py-2 px-3 text-right font-mono text-[9px] text-t-muted tracking-widest">JP PRICE</th>
             <th className="py-2 px-3 text-right font-mono text-[9px] text-t-blue tracking-widest">RESALE</th>
