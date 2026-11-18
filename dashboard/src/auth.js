@@ -8,6 +8,9 @@ export const clearToken = ()     => sessionStorage.removeItem(KEY)
 export const isAuthed  = ()      => !!getToken()
 
 export async function login(username, password) {
+  const u = (username || '').trim().toLowerCase()
+  const p = (password || '').trim()
+
   // First try backend if available
   try {
     const body = new URLSearchParams({ username, password })
@@ -26,7 +29,7 @@ export async function login(username, password) {
   }
 
   // Demo fallback credentials
-  if (username === 'admin123' && password === 'admin123') {
+  if ((u === 'admin123' || u === 'admin') && p === 'admin123') {
     setToken('fs_demo_access_token')
     return
   }
